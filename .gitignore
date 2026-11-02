@@ -1,0 +1,5 @@
+# Original dataset
+data/
+
+# Preprocessed dataset
+processed/
