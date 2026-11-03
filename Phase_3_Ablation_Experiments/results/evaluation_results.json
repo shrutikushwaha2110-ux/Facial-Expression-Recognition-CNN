@@ -1,0 +1,6 @@
+{
+    "validation_accuracy": 0.567924856496782,
+    "macro_f1": 0.5429402916606673,
+    "best_validation_accuracy": 0.5679248571395874,
+    "lowest_validation_loss": 1.151837944984436
+}
