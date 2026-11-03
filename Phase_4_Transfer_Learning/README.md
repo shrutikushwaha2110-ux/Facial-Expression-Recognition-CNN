@@ -13,7 +13,7 @@ This phase explores transfer learning using **MobileNetV2** pre-trained on Image
 
 | Model Architecture | Test Loss | Test Accuracy | Macro Precision | Macro Recall | Macro F1-Score |
 | :--- | :---: | :---: | :---: | :---: | :---: |
-| **Custom CNN (Phase 3)** | ~1.28 | ~56.79% (Val) | ~0.55 | ~0.53 | 0.5429 (Val) |
+| **Custom CNN (Phase 3)** | ~1.28 | - - | ~0.55 | ~0.53 | 0.5429 (Val) |
 | **MobileNetV2 (Feature Extraction)** | ~1.35 | ~51.20% | ~0.48 | ~0.45 | 0.4620 |
 | **MobileNetV2 (Fine-Tuning)** | **1.2543** | **55.53%** | **0.53** | **0.46** | **0.4907** |
 
