@@ -1,6 +1,5 @@
 # Phase 4 Transfer Learning Models
 
-# Phase 4: Transfer Learning (MobileNetV2)
 
 This phase explores the application of transfer learning using the **MobileNetV2** architecture for facial expression recognition on the FER-2013 dataset. By leveraging a pre-trained feature extractor, we aim to improve generalization, handle class imbalances more effectively, and boost overall classification performance compared to baseline custom CNNs.
 
