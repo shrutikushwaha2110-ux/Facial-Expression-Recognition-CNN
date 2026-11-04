@@ -1,0 +1,14 @@
+Feature Extraction Classification Report:
+               precision    recall  f1-score   support
+
+       Angry       0.34      0.38      0.36       958
+     Disgust       0.30      0.56      0.39       111
+        Fear       0.34      0.30      0.32      1024
+       Happy       0.66      0.67      0.66      1774
+         Sad       0.44      0.29      0.35      1247
+    Surprise       0.56      0.68      0.62       831
+     Neutral       0.43      0.49      0.46      1233
+
+    accuracy                           0.48      7178
+   macro avg       0.44      0.48      0.45      7178
+weighted avg       0.48      0.48      0.47      7178
