@@ -2,26 +2,45 @@
 
 This phase explores transfer learning using **MobileNetV2** pre-trained on ImageNet, adapted for facial expression recognition on the FER-2013 dataset.
 
-## 🚀 Key Architectural & Pipeline Decisions
-* **Preprocessing**: Input images scaled to $[-1, 1]$ to match MobileNetV2's distribution requirements.
-* **Freezing Strategy**: Frozen early feature extraction blocks and explicitly frozen **Batch Normalization layers** to prevent destructive updates.
-* **Class Imbalance**: Mitigated using balanced class weighting during training.
+## ⚙️ Process & Methodology Followed
 
----
+1. **Data Preprocessing & Resizing (`prepare_mb_data`)**
+   * Scaled and resized native $48 \times 48$ grayscale arrays to $96 \times 96$ pixels.
+   * Converted single-channel inputs into 3-channel RGB tensors to match MobileNetV2 architecture requirements.
+   * Normalized pixel ranges from $[0, 1]$ to $[-1, 1]$.
+
+2. **Class Weight Optimization**
+   * Calculated automated class weights using `scikit-learn` to combat category imbalances across emotion classes (Angry, Disgust, Fear, Happy, Sad, Surprise, Neutral).
+
+3. **Stage 1: Feature Extraction**
+   * Loaded **MobileNetV2** pre-trained on ImageNet with weights frozen (`base_model.trainable = False`).
+   * Attached a custom classification head (`GlobalAveragePooling2D`, `Dense(256)`, `Dropout(0.5)`, and `Dense(7, softmax)`).
+   * Trained the classification head for 10 epochs using the Adam optimizer ($\text{lr} = 0.001$).
+
+4. **Stage 2: Fine-Tuning**
+   * Unfroze the top 20 layers of the MobileNetV2 base model while keeping Batch Normalization layers locked to prevent overfitting.
+   * Recompiled with a reduced learning rate ($\text{lr} = 0.0001$).
+   * Applied training callbacks: **EarlyStopping** (`patience=5`, restoring best weights) and **ReduceLROnPlateau** (`factor=0.5`, `patience=2`).
 
 ## 📊 Model Comparison Table
 
 | Model Architecture | Test Loss | Test Accuracy | Macro Precision | Macro Recall | Macro F1-Score |
 | :--- | :---: | :---: | :---: | :---: | :---: |
-| **Custom CNN (Phase 3)** | ~1.28 | - - | ~0.55 | ~0.53 | 0.5429 (Val) |
-| **MobileNetV2 (Feature Extraction)** | ~1.35 | ~51.20% | ~0.48 | ~0.45 | 0.4620 |
-| **MobileNetV2 (Fine-Tuning)** | **1.2543** | **55.53%** | **0.53** | **0.46** | **0.4907** |
+| **Custom CNN (Phase 3)** | ~1.14 | 56.53% | ~0.53 | ~0.55 | 0.5429 |
+| **MobileNetV2 (Feature Extraction)** | ~1.35 | 48.02% | ~0.4407 | ~0.48 | 0.4517 |
+| **MobileNetV2 (Fine-Tuning)** | **1.1838** | **56.87%** | **0.5451** | **0.56** | **0.5525** |
 
----
 
 ## 📉 Training Dynamics, Overfitting & Checkpoints
 * **Overfitting Control**: Early stopping with a patience of 5 epochs monitored validation loss.
 * **Selected Checkpoint**: `fer2013_mobilenet_finetuned_best.keras` saved at the optimal validation epoch.
+
+### Key Takeaways & Limitations
+* **Comparative Performance:** The Fine-Tuned MobileNetV2 achieves the highest Test Accuracy (**56.87%**) and Macro F1-score (**0.5525**), closely followed by the Custom CNN (56.53% accuracy and 0.5429 F1-score). 
+* **Loss & Efficiency:** The Custom CNN demonstrates a slightly lower Test Loss (~1.14 compared to 1.1838), while the Fine-Tuned MobileNetV2 edges out slightly in classification metrics after unfreezing top layers.
+* **Dataset Limitation Notice:** When interpreting these test metrics, note that the original FER-2013 benchmark split contains duplicate-image overlaps between training, validation, and test subsets. This leakage introduces a known constraint that can inflate absolute performance metrics during evaluation.
+
+
 
 ---
 
