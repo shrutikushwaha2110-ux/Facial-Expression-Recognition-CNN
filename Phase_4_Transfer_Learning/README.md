@@ -43,13 +43,15 @@ This phase explores transfer learning using **MobileNetV2** pre-trained on Image
 
 
 ---
-
 ## 📂 Directory Structure
 ```text
 Phase_4_Transfer_Learning/
 ├── models/
+│   ├── README.md
 │   └── fer2013_mobilenet_finetuned_best.keras
 ├── results/
-│   ├── confusion_matrix.png
-│   └── classification_report.txt
+│   ├── classification_report_Fine-tuning.txt
+│   ├── classification_report_feature_extraction.txt
+│   ├── confusion_matrix_feature_extraction.png
+│   └── confusion_matrix_fine_tuning.png
 └── README.md
