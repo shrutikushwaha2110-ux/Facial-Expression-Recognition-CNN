@@ -1,56 +1,72 @@
-# Phase 4: Transfer Learning (MobileNetV2)
+# Facial Expression Recognition (FER) - MobileNetV2 Fine-Tuning Pipeline
 
-This phase explores transfer learning using **MobileNetV2** pre-trained on ImageNet, adapted for facial expression recognition on the FER-2013 dataset.
+## Project Overview
 
-## ⚙️ Process & Methodology Followed
+This repository contains the transfer learning and fine-tuning pipeline for a Facial Emotion Recognition (FER) system using MobileNetV2. The project is structured as a collaborative team workflow where one teammate handles model fine-tuning and validation, while another handles final test-set evaluation and explainability (Grad-CAM).
 
-1. **Data Preprocessing & Resizing (`prepare_mb_data`)**
-   * Scaled and resized native $48 \times 48$ grayscale arrays to $96 \times 96$ pixels using batched processing forced on the CPU to prevent GPU Out-of-Memory errors.
-   * Converted single-channel inputs into 3-channel RGB tensors to match MobileNetV2 architecture requirements.
-   * Normalized pixel ranges from $[0, 1]$ to $[-1, 1]$.
+## Dataset & Leakage Prevention
 
-2. **Class Weight Optimization**
-   * Calculated automated class weights using `scikit-learn` to combat category imbalances across emotion classes (Angry, Disgust, Fear, Happy, Sad, Surprise, Neutral).
+* **Dataset**: FER2013 preprocessed and verified for data leakage prevention (`fer2013_preprocessed_leakage_checked.npz.zip`).
+* **Data Splits**:
+* **Training Set**: 22,949 samples
 
-3. **Stage 1: Feature Extraction**
-   * Loaded **MobileNetV2** pre-trained on ImageNet with weights frozen (`base_model.trainable = False`).
-   * Attached a custom classification head (`GlobalAveragePooling2D`, `Dense(256)`, `Dropout(0.5)`, and `Dense(7, softmax)`).
-   * Trained the classification head for 10 epochs using the Adam optimizer ($\text{lr} = 0.001$).
+* **Validation Set**: 5,749 samples
+* **Test Set**: 6,611 samples (strictly reserved and pristine for teammate evaluation)
 
-4. **Stage 2: Fine-Tuning**
-   * Unfroze the top 20 layers of the MobileNetV2 base model while keeping Batch Normalization layers locked to prevent overfitting.
-   * Recompiled with a reduced learning rate ($\text{lr} = 0.0001$).
-   * Applied training callbacks: **EarlyStopping** (`patience=5`, restoring best weights) and **ReduceLROnPlateau** (`factor=0.5`, `patience=2`).
+## Model Architecture & Fine-Tuning Strategy
 
-## 📊 Model Comparison Table
+* **Base Model**: MobileNetV2 pre-trained on ImageNet weights, configured with an input shape of $96\times96\times3$
 
-| Model Architecture | Test Loss | Test Accuracy | Macro Precision | Macro Recall | Macro F1-Score |
-| :--- | :---: | :---: | :---: | :---: | :---: |
-| **Custom CNN (Phase 3)** | ~1.14 | 56.53% | ~0.53 | ~0.55 | 0.5429 |
-| **MobileNetV2 (Fine-Tuning)** | **1.2** | **54.87%** | **0.50** | **0.52** | **0.51** |
+* **Input Preprocessing**: Grayscale images are resized to $96\times96$, replicated across 3 RGB channels, and normalized.
+* **Classification Head**:
+* `GlobalAveragePooling2D()`
+* `Dense(256, activation='relu')`
+* `Dropout(0.5)`
+* `Dense(7, activation='softmax')` for 7 emotion classes (*Angry, Disgust, Fear, Happy, Sad, Surprise, Neutral*).
+
+* **Fine-Tuning Configuration**:
+* Unfroze the top 20 layers of MobileNetV2 while keeping lower layers frozen.
+* Froze all `BatchNormalization` layers to stabilize training and prevent overfitting.
+* Computed balanced class weights to manage class imbalance across emotion categories.
+
+## Training & Callbacks
+* **Optimizer**: Adam with a low learning rate of `0.0001`.
+* **Loss Function**: Sparse categorical crossentropy.
+* **Callbacks**:
+* `EarlyStopping`: Monitors `val_loss` with a patience of 5 epochs, restoring the best weights.
+* `ReduceLROnPlateau`: Reduces learning rate by a factor of 0.5 when `val_loss` plateaus for 2 epochs (minimum LR: `0.00001`).
+* **Training Performance**: Reached a final training accuracy of ~81.29% and a validation accuracy of ~56.32% by epoch 14.
+
+## Validation Results
+Evaluated exclusively on the validation set (`X_val`) to preserve the test set:
+* **Validation Loss**: 1.1928
+* **Validation Accuracy**: 56.32%
+* **Macro Precision**: 0.5315
+* **Macro Recall**: 0.5365
+* **Macro F1 Score**: 0.5286
 
 
-## 📉 Training Dynamics, Overfitting & Checkpoints
-- **Overfitting Control**: Early stopping with a patience of 5 epochs monitored validation loss.
-- **Selected Checkpoint**: `fer2013_mobilenet_finetuned_best.keras` saved at the optimal validation epoch.
 
-### Key Takeaways & Limitations
-- **Comparative Performance:** The Fine-Tuned MobileNetV2 achieves competitive test metrics, closely following the Custom CNN baseline. 
-- **Loss & Efficiency:** The Custom CNN demonstrates a slightly lower Test Loss, while the Fine-Tuned MobileNetV2 successfully adapts structural representations after unfreezing top layers.
-- **Dataset Limitation Notice:** When interpreting these test metrics, note that the original FER-2013 benchmark split contains duplicate-image overlaps between training, validation, and test subsets. This leakage introduces a known constraint that can inflate absolute performance metrics during evaluation.
+### Validation Classification Report:
 
-
-
----
-## 📂 Directory Structure
 ```text
-Phase_4_Transfer_Learning/
-├── models/
-│   ├── README.md
-│   └── fer2013_mobilenet_finetuned_best.keras
-├── results/
-│   ├── classification_report_Fine-tuning.txt
-│   ├── classification_report_feature_extraction.txt
-│   ├── confusion_matrix_feature_extraction.png
-│   └── confusion_matrix_fine_tuning.png
-└── README.md
+              precision    recall  f1-score   support
+
+       Angry       0.51      0.37      0.43       797
+     Disgust       0.45      0.51      0.48        89
+        Fear       0.46      0.31      0.37       815
+       Happy       0.72      0.81      0.76      1441
+         Sad       0.45      0.45      0.45       972
+    Surprise       0.66      0.74      0.69       646
+     Neutral       0.47      0.58      0.52       989
+
+    accuracy                           0.56      5749
+   macro avg       0.53      0.54      0.53      5749
+weighted avg       0.55      0.56      0.55      5749
+
+```
+
+## Team Artifacts & Hand-off
+
+* **Saved Model**: `/content/fer2013_mobilenet_finetuned_best.keras` (passed to teammate for final test evaluation and Grad-CAM explainability).
+* **Generated Reports**: `classification_report_val.txt` and `confusion_matrix_val.png`.
