@@ -5,7 +5,7 @@ This phase explores transfer learning using **MobileNetV2** pre-trained on Image
 ## ⚙️ Process & Methodology Followed
 
 1. **Data Preprocessing & Resizing (`prepare_mb_data`)**
-   * Scaled and resized native $48 \times 48$ grayscale arrays to $96 \times 96$ pixels.
+   * Scaled and resized native $48 \times 48$ grayscale arrays to $96 \times 96$ pixels using batched processing forced on the CPU to prevent GPU Out-of-Memory errors.
    * Converted single-channel inputs into 3-channel RGB tensors to match MobileNetV2 architecture requirements.
    * Normalized pixel ranges from $[0, 1]$ to $[-1, 1]$.
 
@@ -27,18 +27,18 @@ This phase explores transfer learning using **MobileNetV2** pre-trained on Image
 | Model Architecture | Test Loss | Test Accuracy | Macro Precision | Macro Recall | Macro F1-Score |
 | :--- | :---: | :---: | :---: | :---: | :---: |
 | **Custom CNN (Phase 3)** | ~1.14 | 56.53% | ~0.53 | ~0.55 | 0.5429 |
-| **MobileNetV2 (Feature Extraction)** | ~1.35 | 48.02% | ~0.4407 | ~0.48 | 0.4517 |
-| **MobileNetV2 (Fine-Tuning)** | **1.1838** | **56.87%** | **0.5451** | **0.56** | **0.5525** |
+| **MobileNetV2 (Feature Extraction)** | ~1.44 | 45.02% | ~0.40 | ~0.46 | 0.39 |
+| **MobileNetV2 (Fine-Tuning)** | **1.2** | **54.87%** | **0.50** | **0.52** | **0.51** |
 
 
 ## 📉 Training Dynamics, Overfitting & Checkpoints
-* **Overfitting Control**: Early stopping with a patience of 5 epochs monitored validation loss.
-* **Selected Checkpoint**: `fer2013_mobilenet_finetuned_best.keras` saved at the optimal validation epoch.
+- **Overfitting Control**: Early stopping with a patience of 5 epochs monitored validation loss.
+- **Selected Checkpoint**: `fer2013_mobilenet_finetuned_best.keras` saved at the optimal validation epoch.
 
 ### Key Takeaways & Limitations
-* **Comparative Performance:** The Fine-Tuned MobileNetV2 achieves the highest Test Accuracy (**56.87%**) and Macro F1-score (**0.5525**), closely followed by the Custom CNN (56.53% accuracy and 0.5429 F1-score). 
-* **Loss & Efficiency:** The Custom CNN demonstrates a slightly lower Test Loss (~1.14 compared to 1.1838), while the Fine-Tuned MobileNetV2 edges out slightly in classification metrics after unfreezing top layers.
-* **Dataset Limitation Notice:** When interpreting these test metrics, note that the original FER-2013 benchmark split contains duplicate-image overlaps between training, validation, and test subsets. This leakage introduces a known constraint that can inflate absolute performance metrics during evaluation.
+- **Comparative Performance:** The Fine-Tuned MobileNetV2 achieves competitive test metrics, closely following the Custom CNN baseline. 
+- **Loss & Efficiency:** The Custom CNN demonstrates a slightly lower Test Loss, while the Fine-Tuned MobileNetV2 successfully adapts structural representations after unfreezing top layers.
+- **Dataset Limitation Notice:** When interpreting these test metrics, note that the original FER-2013 benchmark split contains duplicate-image overlaps between training, validation, and test subsets. This leakage introduces a known constraint that can inflate absolute performance metrics during evaluation.
 
 
 
